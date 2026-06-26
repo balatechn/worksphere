@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String?
+  avatar    String?
+  googleId  String?    @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  inputs    Input[]
+  items     Item[]
+  reminders Reminder[]
+}
+
+model Input {
+  id        String   @id @default(cuid())
+  rawText   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     Item[]
+  createdAt DateTime @default(now())
+}
+
+model Item {
+  id          String     @id @default(cuid())
+  inputId     String?
+  input       Input?     @relation(fields: [inputId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    Category
+  title       String
+  description String?
+  assignee    String?
+  deadline    DateTime?
+  status      Status     @default(PENDING)
+  priority    Priority   @default(MEDIUM)
+  isUrgent    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  reminders   Reminder[]
+}
+
+model Reminder {
+  id          String       @id @default(cuid())
+  itemId      String
+  item        Item         @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheduledAt DateTime
+  type        ReminderType
+  sent        Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+}
+
+enum Category {
+  MY_TASKS
+  TEAM_TASKS
+  REMINDERS
+  FOLLOW_UPS
+  WAITING_APPROVAL
+  CALLS
+  MEETINGS
+  PROCUREMENT
+  NOTES
+  DELEGATED
+}
+
+enum Status {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SNOOZED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ReminderType {
+  DAILY
+  FOLLOW_UP
+  ESCALATION
+  DEADLINE
+  CUSTOM
+}
