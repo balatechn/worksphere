@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '../../auth/[...nextauth]/options';
 
 const BACKEND_URL = process.env.INTERNAL_API_URL || 'http://backend:5000';
 const INTERNAL_SECRET = process.env.INTERNAL_SECRET || '';
