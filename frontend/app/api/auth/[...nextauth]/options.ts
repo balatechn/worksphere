@@ -1,11 +1,33 @@
 import { type NextAuthOptions } from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    CredentialsProvider({
+      name: 'credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
+
+        const adminEmail = process.env.ADMIN_EMAIL || 'vedhitek@gmail.com';
+        const adminPassword = process.env.ADMIN_PASSWORD || '';
+
+        if (
+          credentials.email.toLowerCase() === adminEmail.toLowerCase() &&
+          credentials.password === adminPassword
+        ) {
+          return {
+            id: '1',
+            email: adminEmail,
+            name: process.env.ADMIN_NAME || 'Admin',
+            image: null,
+          };
+        }
+        return null;
+      },
     }),
   ],
   session: {
@@ -15,7 +37,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user }) {
       try {
-        const res = await fetch(`${process.env.INTERNAL_API_URL}/api/auth/sync`, {
+        await fetch(`${process.env.INTERNAL_API_URL}/api/auth/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -24,7 +46,6 @@ export const authOptions: NextAuthOptions = {
             avatar: user.image,
           }),
         });
-        if (!res.ok) console.error('Failed to sync user:', await res.text());
       } catch (e) {
         console.error('Auth sync error:', e);
       }
