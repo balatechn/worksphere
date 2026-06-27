@@ -12,9 +12,7 @@ interface SmartInputProps {
   onItemsAdded?: (items: any[]) => void;
 }
 
-const PLACEHOLDER = `Type anything — tasks, reminders, meeting notes, or paste a URL to save it...
-
-Example: "Visit Shivamogga Tuesday for OS install, ask Salman to arrange travel, remind finance for advance."`;
+const PLACEHOLDER = `Type anything — tasks, reminders, meeting notes, or paste a URL to save it...`;
 
 function isUrl(text: string) {
   return /^https?:\/\/\S+$/.test(text.trim());
@@ -291,7 +289,7 @@ function InputBox({ text, setText, textareaRef, onKeyDown, onClear, autoResize, 
           value={text}
           onChange={e => { setText(e.target.value); autoResize(); }}
           onKeyDown={onKeyDown}
-          placeholder={`Type anything — tasks, reminders, meeting notes, ideas...\n\nExample: "Need to visit Shivamogga Tuesday for OS installation, ask Salman to arrange travel, remind finance for advance payment."`}
+          placeholder="Type anything — tasks, reminders, meeting notes, or paste a URL..."
           rows={3}
           className="flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none leading-relaxed"
         />
