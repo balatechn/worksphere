@@ -6,8 +6,7 @@ import { api } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import {
-  Check, Calendar, User, Bell, Mail, Clock, Trash2, MoreHorizontal,
-  AlertTriangle, Edit2
+  Check, Calendar, User, Bell, Mail, Clock, Trash2, MoreHorizontal, AlertTriangle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -43,6 +42,7 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
   const cfg = CATEGORY_CONFIG[item.category] || CATEGORY_CONFIG.NOTES;
   const priorityCfg = PRIORITY_CONFIG[item.priority] || PRIORITY_CONFIG.MEDIUM;
   const isCompleted = item.status === 'COMPLETED';
+  const isOverdue = item.deadline && new Date(item.deadline) < new Date() && !isCompleted;
 
   const withLoading = async (key: string, fn: () => Promise<any>) => {
     setLoading(key);
@@ -56,19 +56,14 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
     }
   };
 
-  const handleComplete = () =>
-    withLoading('complete', () => api.completeItem(item.id));
-
-  const handleSnooze = (hours: number) =>
-    withLoading('snooze', () => api.snoozeItem(item.id, hours));
-
-  const handleSendReminder = () => {
+  const handleComplete = () => withLoading('complete', () => api.completeItem(item.id));
+  const handleSnooze = (hours: number) => withLoading('snooze', () => api.snoozeItem(item.id, hours));
+  const handleSendReminder = () =>
     withLoading('remind', async () => {
       await api.sendReminder(item.id);
       toast({ title: 'Reminder sent', description: 'Email reminder sent successfully.' });
       return item;
     });
-  };
 
   const handleDelete = async () => {
     setLoading('delete');
@@ -96,15 +91,13 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
       return result;
     });
 
-  const isOverdue = item.deadline && new Date(item.deadline) < new Date() && !isCompleted;
-
   return (
     <>
       <div className={cn(
-        'group relative flex items-start gap-3 p-3 rounded-xl border transition-all duration-200 hover:shadow-md',
+        'group relative flex items-start gap-3 p-3 rounded-xl border transition-all duration-200',
         isCompleted
           ? 'bg-muted/30 border-border/30 opacity-60'
-          : 'bg-card border-border hover:border-primary/20 hover:bg-accent/20',
+          : 'bg-card border-border hover:border-primary/20 hover:bg-accent/20 hover:shadow-sm',
         item.isUrgent && !isCompleted && 'border-red-200 dark:border-red-900 bg-red-50/30 dark:bg-red-950/20'
       )}>
         {/* Complete checkbox */}
@@ -112,14 +105,14 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
           onClick={handleComplete}
           disabled={isCompleted || loading === 'complete'}
           className={cn(
-            'flex-shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
+            'flex-shrink-0 mt-0.5 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all touch-manipulation',
             isCompleted
               ? 'bg-green-500 border-green-500'
               : 'border-border hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950'
           )}
         >
           {(isCompleted || loading === 'complete') && (
-            <Check className="w-3 h-3 text-white" />
+            <Check className="w-3.5 h-3.5 text-white" />
           )}
         </button>
 
@@ -134,13 +127,10 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
                 </span>
                 {item.isUrgent && (
                   <span className="text-xs font-bold text-red-500 flex items-center gap-0.5">
-                    <AlertTriangle className="w-3 h-3" />
-                    Urgent
+                    <AlertTriangle className="w-3 h-3" /> Urgent
                   </span>
                 )}
-                <span className={cn('text-xs', priorityCfg.color)}>
-                  {priorityCfg.label}
-                </span>
+                <span className={cn('text-xs', priorityCfg.color)}>{priorityCfg.label}</span>
               </div>
 
               {/* Title */}
@@ -157,8 +147,7 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
               <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                 {item.assignee && (
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <User className="w-3 h-3" />
-                    {item.assignee}
+                    <User className="w-3 h-3" /> {item.assignee}
                   </span>
                 )}
                 {item.deadline && (
@@ -173,44 +162,52 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Actions — always visible on mobile, hover on desktop */}
+            <div className="flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <MoreHorizontal className="h-3.5 w-3.5" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 touch-manipulation"
+                    aria-label="Item actions"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-52">
                   {!isCompleted && (
-                    <DropdownMenuItem onClick={handleComplete} className="cursor-pointer">
+                    <DropdownMenuItem onClick={handleComplete} className="cursor-pointer py-2.5">
                       <Check className="mr-2 h-4 w-4 text-green-500" />
                       Mark complete
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={() => setDeadlineDialog(true)} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => setDeadlineDialog(true)} className="cursor-pointer py-2.5">
                     <Calendar className="mr-2 h-4 w-4 text-blue-500" />
                     Set deadline
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setAssignDialog(true)} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => setAssignDialog(true)} className="cursor-pointer py-2.5">
                     <User className="mr-2 h-4 w-4 text-violet-500" />
                     Assign to
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSendReminder} className="cursor-pointer">
+                  <DropdownMenuItem onClick={handleSendReminder} className="cursor-pointer py-2.5">
                     <Mail className="mr-2 h-4 w-4 text-indigo-500" />
                     Send email reminder
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleSnooze(24)} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => handleSnooze(24)} className="cursor-pointer py-2.5">
                     <Clock className="mr-2 h-4 w-4 text-amber-500" />
                     Snooze 24 hours
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSnooze(48)} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => handleSnooze(48)} className="cursor-pointer py-2.5">
                     <Clock className="mr-2 h-4 w-4 text-amber-500" />
                     Snooze 2 days
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-destructive focus:text-destructive">
+                  <DropdownMenuItem
+                    onClick={handleDelete}
+                    className="cursor-pointer text-destructive focus:text-destructive py-2.5"
+                  >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete
                   </DropdownMenuItem>
@@ -223,7 +220,7 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
 
       {/* Deadline dialog */}
       <Dialog open={deadlineDialog} onOpenChange={setDeadlineDialog}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-sm rounded-2xl">
           <DialogHeader>
             <DialogTitle>Set Deadline</DialogTitle>
           </DialogHeader>
@@ -235,11 +232,12 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
                 value={deadline}
                 onChange={e => setDeadline(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
+                className="h-12 text-base"
               />
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => setDeadlineDialog(false)} variant="outline" className="flex-1">Cancel</Button>
-              <Button onClick={handleSetDeadline} disabled={loading === 'deadline'} className="flex-1">
+              <Button onClick={() => setDeadlineDialog(false)} variant="outline" className="flex-1 h-11">Cancel</Button>
+              <Button onClick={handleSetDeadline} disabled={loading === 'deadline'} className="flex-1 h-11">
                 {loading === 'deadline' ? 'Saving...' : 'Set Deadline'}
               </Button>
             </div>
@@ -249,7 +247,7 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
 
       {/* Assign dialog */}
       <Dialog open={assignDialog} onOpenChange={setAssignDialog}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-sm rounded-2xl">
           <DialogHeader>
             <DialogTitle>Assign To</DialogTitle>
           </DialogHeader>
@@ -260,11 +258,12 @@ export function ItemCard({ item, onUpdate, onDelete, compact = false }: ItemCard
                 value={assignee}
                 onChange={e => setAssignee(e.target.value)}
                 placeholder="e.g. Salman, Finance Team..."
+                className="h-12 text-base"
               />
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => setAssignDialog(false)} variant="outline" className="flex-1">Cancel</Button>
-              <Button onClick={handleSetAssignee} disabled={loading === 'assign'} className="flex-1">
+              <Button onClick={() => setAssignDialog(false)} variant="outline" className="flex-1 h-11">Cancel</Button>
+              <Button onClick={handleSetAssignee} disabled={loading === 'assign'} className="flex-1 h-11">
                 {loading === 'assign' ? 'Saving...' : 'Assign'}
               </Button>
             </div>

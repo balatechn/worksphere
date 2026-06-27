@@ -10,9 +10,9 @@ import { SmartInput } from '@/components/SmartInput';
 import { DashboardSection } from '@/components/DashboardSection';
 import { ItemCard } from '@/components/ItemCard';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckSquare, TrendingUp, AlertTriangle, Clock, Menu, X } from 'lucide-react';
+import { CheckSquare, TrendingUp, AlertTriangle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { BottomNav } from '@/components/BottomNav';
 
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) {
   return (
@@ -150,7 +150,7 @@ export default function DashboardPage() {
           />
         </aside>
 
-        {/* Sidebar — mobile overlay */}
+        {/* Sidebar — mobile overlay (for search/filter access) */}
         {sidebarOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
@@ -167,7 +167,7 @@ export default function DashboardPage() {
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          <div className="max-w-4xl mx-auto px-4 py-6 pb-24 lg:pb-6 space-y-6">
             {/* Smart Input — always visible */}
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
@@ -343,6 +343,13 @@ export default function DashboardPage() {
           </div>
         </main>
       </div>
+
+      {/* Bottom navigation — mobile only */}
+      <BottomNav
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        counts={counts}
+      />
     </div>
   );
 }

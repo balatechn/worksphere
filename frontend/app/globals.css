@@ -72,4 +72,21 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
+  /* iOS safe area bottom padding */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* Prevent text size adjustment on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  /* Better tap highlight on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Touch manipulation for interactive elements */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
 }
