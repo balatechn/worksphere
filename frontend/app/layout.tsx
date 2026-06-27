@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from 'next';
+import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
@@ -10,30 +10,25 @@ export const metadata: Metadata = {
   title: 'WorkSphere — Smart Productivity Workspace',
   description: 'Your AI-powered personal productivity command center',
   manifest: '/manifest.webmanifest',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'WorkSphere',
-  },
   icons: {
     icon: '/favicon.ico',
     apple: '/icon-192.png',
   },
-};
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#6366f1' },
-    { media: '(prefers-color-scheme: dark)',  color: '#4f46e5' },
-  ],
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'apple-mobile-web-app-title': 'WorkSphere',
+    'theme-color': '#6366f1',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      </head>
       <body className={inter.className}>
         <Providers>
           {children}
