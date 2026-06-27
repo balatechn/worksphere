@@ -24,24 +24,6 @@ app.use(express.json({ limit: '10mb' }));
 
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
-// Temporary debug endpoint — remove after diagnosis
-app.get('/debug/openai', async (req, res) => {
-  const { OpenAI } = require('openai');
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) return res.json({ error: 'OPENAI_API_KEY not set', keyPresent: false });
-  const openai = new OpenAI({ apiKey: key });
-  try {
-    const r = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: 'Say "ok"' }],
-      max_tokens: 5,
-    });
-    res.json({ ok: true, reply: r.choices[0].message.content, keyPrefix: key.substring(0, 12) });
-  } catch (err) {
-    res.json({ ok: false, error: err.message, status: err.status, keyPrefix: key.substring(0, 12) });
-  }
-});
-
 // User sync endpoint called by NextAuth on login
 app.post('/api/auth/sync', async (req, res) => {
   try {

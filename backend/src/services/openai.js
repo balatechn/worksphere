@@ -1,6 +1,6 @@
-const OpenAI = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const SYSTEM_PROMPT = `You are WorkSphere, a productivity assistant. Analyze the user's text and extract all actionable items.
 
@@ -27,21 +27,21 @@ Category rules:
 - Random thoughts / info → NOTES
 
 Extract EVERY actionable item. If text has multiple tasks, return all of them.
-Return ONLY the JSON object, no markdown, no explanation.`;
+Return ONLY valid JSON, no markdown, no explanation.`;
 
 async function analyzeInput(text) {
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: text },
-    ],
-    temperature: 0.2,
-    response_format: { type: 'json_object' },
-    max_tokens: 2000,
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.2,
+      maxOutputTokens: 2000,
+    },
+    systemInstruction: SYSTEM_PROMPT,
   });
 
-  const content = response.choices[0].message.content;
+  const result = await model.generateContent(text);
+  const content = result.response.text();
   const parsed = JSON.parse(content);
   const items = Array.isArray(parsed) ? parsed : (parsed.items || []);
 
