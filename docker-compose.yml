@@ -48,7 +48,7 @@ services:
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_APP_NAME: WorkSphere
-      NEXTAUTH_URL: ${FRONTEND_URL:-http://localhost:3000}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-ws_nextauth_secret_2024}
       AZURE_AD_CLIENT_ID: ${AZURE_AD_CLIENT_ID}
       AZURE_AD_CLIENT_SECRET: ${AZURE_AD_CLIENT_SECRET}
@@ -59,8 +59,22 @@ services:
       - backend
     networks:
       - worksphere-net
+      - coolify
     ports:
       - "3000:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
+      # HTTPS router
+      - "traefik.http.routers.worksphere.rule=Host(`n6co0az1uzf7qcxxsmymtwiy.187.127.134.246.sslip.io`)"
+      - "traefik.http.routers.worksphere.entrypoints=https"
+      - "traefik.http.routers.worksphere.tls=true"
+      - "traefik.http.routers.worksphere.tls.certresolver=letsencrypt"
+      - "traefik.http.services.worksphere.loadbalancer.server.port=3000"
+      # HTTP → HTTPS redirect
+      - "traefik.http.routers.worksphere-http.rule=Host(`n6co0az1uzf7qcxxsmymtwiy.187.127.134.246.sslip.io`)"
+      - "traefik.http.routers.worksphere-http.entrypoints=http"
+      - "traefik.http.routers.worksphere-http.middlewares=redirect-to-https@docker"
 
 volumes:
   pgdata:
@@ -68,3 +82,5 @@ volumes:
 networks:
   worksphere-net:
     driver: bridge
+  coolify:
+    external: true
