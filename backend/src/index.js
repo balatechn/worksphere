@@ -42,6 +42,16 @@ app.post('/api/auth/sync', async (req, res) => {
   }
 });
 
+// Test endpoint — trigger weekly report immediately
+app.get('/api/test/report', async (req, res) => {
+  try {
+    await sendWeeklyActivityReport();
+    res.json({ ok: true, message: 'Report sent — check bala@nationalgroupindia.com' });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.use('/api/inputs', authMiddleware, inputsRouter);
 app.use('/api/items', authMiddleware, itemsRouter);
 app.use('/api/users', authMiddleware, usersRouter);
