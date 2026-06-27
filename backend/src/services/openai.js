@@ -14,6 +14,7 @@ Return a JSON object with an "items" array. Each item must have exactly these fi
 - priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
 
 Category rules:
+- URLs / links / web addresses (http:// or https://) → NOTES, title = the URL itself, description = any surrounding context
 - "remind Salman" → DELEGATED, assignee: "Salman"
 - "ask finance team" → DELEGATED, assignee: "Finance Team"
 - "call someone" or "phone someone" → CALLS
@@ -24,8 +25,9 @@ Category rules:
 - "follow up" → FOLLOW_UPS
 - Personal tasks → MY_TASKS
 - Team tasks not yet delegated → TEAM_TASKS
-- Random thoughts / info → NOTES
+- Random thoughts / info / links → NOTES
 
+If the input is ONLY a URL with no other text, return exactly one item: category NOTES, title = the URL, description = null.
 Extract EVERY actionable item. If text has multiple tasks, return all of them.
 Return ONLY valid JSON, no markdown, no explanation.`;
 

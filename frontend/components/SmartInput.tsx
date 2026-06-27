@@ -12,9 +12,25 @@ interface SmartInputProps {
   onItemsAdded?: (items: any[]) => void;
 }
 
-const PLACEHOLDER = `Type anything — tasks, reminders, meeting notes...
+const PLACEHOLDER = `Type anything — tasks, reminders, meeting notes, or paste a URL to save it...
 
 Example: "Visit Shivamogga Tuesday for OS install, ask Salman to arrange travel, remind finance for advance."`;
+
+function isUrl(text: string) {
+  return /^https?:\/\/\S+$/.test(text.trim());
+}
+
+function urlPreviewItem(url: string) {
+  return [{
+    category: 'NOTES',
+    title: url.length > 80 ? url.substring(0, 77) + '…' : url,
+    description: url,
+    assignee: null,
+    deadline: null,
+    isUrgent: false,
+    priority: 'MEDIUM',
+  }];
+}
 
 export function SmartInput({ onItemsAdded }: SmartInputProps) {
   const [text, setText] = useState('');
@@ -40,7 +56,13 @@ export function SmartInput({ onItemsAdded }: SmartInputProps) {
   };
 
   const handlePreview = async () => {
-    if (!text.trim() || text.trim().length < 5) return;
+    const trimmed = text.trim();
+    if (!trimmed || trimmed.length < 3) return;
+    if (isUrl(trimmed)) {
+      setPreview(urlPreviewItem(trimmed));
+      setShowPreview(true);
+      return;
+    }
     setPreviewing(true);
     try {
       const result = await api.previewInput(text);
@@ -54,11 +76,12 @@ export function SmartInput({ onItemsAdded }: SmartInputProps) {
   };
 
   const handleSave = async () => {
-    if (!text.trim() || text.trim().length < 5) return;
+    const trimmed = text.trim();
+    if (!trimmed || trimmed.length < 3) return;
     setLoading(true);
     try {
       const result = await api.analyzeInput(text);
-      toast({ title: `${result.count} items extracted`, description: 'Added to your workspace.' });
+      toast({ title: `${result.count} item${result.count !== 1 ? 's' : ''} saved`, description: 'Added to your workspace.' });
       setText('');
       setPreview(null);
       setMobileExpanded(false);
@@ -79,7 +102,7 @@ export function SmartInput({ onItemsAdded }: SmartInputProps) {
 
   const handleClear = () => { setText(''); setPreview(null); if (textareaRef.current) textareaRef.current.style.height = 'auto'; };
 
-  const isReady = text.trim().length >= 5;
+  const isReady = text.trim().length >= 3;
 
   return (
     <>
