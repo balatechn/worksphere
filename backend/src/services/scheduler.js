@@ -1,5 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
-const { sendReminderEmail, sendDailySummaryEmail } = require('./email');
+const { sendReminderEmail, sendDailySummaryEmail, sendMonthlyActivityReport } = require('./email');
 
 const prisma = new PrismaClient();
 
@@ -72,4 +72,43 @@ async function sendDailySummaries() {
   }
 }
 
-module.exports = { sendPendingReminders, sendDailySummaries };
+async function sendWeeklyActivityReport() {
+  const reportEmail = process.env.REPORT_EMAIL;
+  if (!reportEmail) {
+    console.log('[Weekly Report] REPORT_EMAIL not configured, skipping');
+    return;
+  }
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthName = now.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+
+    const user = await prisma.user.findUnique({
+      where: { email: reportEmail },
+      include: {
+        items: {
+          where: { createdAt: { gte: startOfMonth } },
+          orderBy: [{ category: 'asc' }, { createdAt: 'desc' }],
+        },
+      },
+    });
+
+    if (!user) {
+      console.log(`[Weekly Report] User ${reportEmail} not found`);
+      return;
+    }
+
+    await sendMonthlyActivityReport({
+      to: reportEmail,
+      userName: user.name,
+      items: user.items,
+      monthName,
+    });
+
+    console.log(`[Weekly Report] Sent to ${reportEmail} — ${user.items.length} items for ${monthName}`);
+  } catch (err) {
+    console.error('[Weekly Report] Failed:', err.message);
+  }
+}
+
+module.exports = { sendPendingReminders, sendDailySummaries, sendWeeklyActivityReport };

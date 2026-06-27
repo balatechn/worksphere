@@ -27,10 +27,11 @@ services:
       DATABASE_URL: postgresql://worksphere:${DB_PASSWORD:-worksphere_secret_2024}@db:5432/worksphere
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       INTERNAL_SECRET: ${INTERNAL_SECRET:-ws_internal_2024_secret}
-      SMTP_HOST: smtp.gmail.com
+      SMTP_HOST: smtp.office365.com
       SMTP_PORT: 587
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
+      REPORT_EMAIL: ${REPORT_EMAIL:-bala@nationalgroupindia.com}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       PORT: 5000
     depends_on:

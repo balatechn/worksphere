@@ -10,7 +10,7 @@ const inputsRouter = require('./routes/inputs');
 const itemsRouter = require('./routes/items');
 const usersRouter = require('./routes/users');
 const dashboardRouter = require('./routes/dashboard');
-const { sendPendingReminders } = require('./services/scheduler');
+const { sendPendingReminders, sendWeeklyActivityReport } = require('./services/scheduler');
 
 const app = express();
 const prisma = new PrismaClient();
@@ -57,6 +57,12 @@ cron.schedule('0 8 * * *', () => {
 cron.schedule('0 * * * *', () => {
   console.log('Running hourly reminder check...');
   sendPendingReminders();
+});
+
+// Cron: weekly report — Saturday 7:00 PM IST (13:30 UTC)
+cron.schedule('30 13 * * 6', () => {
+  console.log('[Cron] Running Saturday weekly report...');
+  sendWeeklyActivityReport();
 });
 
 const PORT = process.env.PORT || 5000;
