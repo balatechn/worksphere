@@ -1,32 +1,16 @@
 import { type NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import AzureADProvider from 'next-auth/providers/azure-ad';
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-
-        const adminEmail = process.env.ADMIN_EMAIL || 'vedhitek@gmail.com';
-        const adminPassword = process.env.ADMIN_PASSWORD || '';
-
-        if (
-          credentials.email.toLowerCase() === adminEmail.toLowerCase() &&
-          credentials.password === adminPassword
-        ) {
-          return {
-            id: '1',
-            email: adminEmail,
-            name: process.env.ADMIN_NAME || 'Admin',
-            image: null,
-          };
-        }
-        return null;
+    AzureADProvider({
+      clientId: process.env.AZURE_AD_CLIENT_ID!,
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
+      tenantId: process.env.AZURE_AD_TENANT_ID,
+      authorization: {
+        params: {
+          scope: 'openid email profile offline_access',
+        },
       },
     }),
   ],
@@ -51,7 +35,7 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.email = user.email;
         token.name = user.name;
