@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { CATEGORY_CONFIG } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sparkles, X, Check, ChevronDown, ChevronUp, AlertCircle, Plus, ArrowUp } from 'lucide-react';
+import { Sparkles, X, Check, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 
